@@ -1,0 +1,44 @@
+{
+  "name": "ts-node-starter",
+  "version": "1.0.0",
+  "description": "Starter template for ts-node project",
+  "main": "index.ts",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.1",
+    "express": "^4.18.1",
+    "morgan": "^1.10.0",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "@tsconfig/recommended": "^1.0.1",
+    "@types/cors": "^2.8.12",
+    "@types/express": "^4.17.13",
+    "@types/http-errors": "^1.8.2",
+    "@types/morgan": "^1.9.3",
+    "@types/node": "^18.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.28.0",
+    "@typescript-eslint/parser": "^5.28.0",
+    "caprover": "^2.2.3",
+    "eslint": "^8.18.0",
+    "eslint-config-prettier": "^8.5.0",
+    "prettier": "2.7.1",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^4.7.4"
+  },
+  "scripts": {
+    "start": "node dist/app.js",
+    "build": "tsc",
+    "deploy": "npm run build && git add dist && git commit -m 'DEPLOYING-AUTO-COMMIT' && caprover deploy --default"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alxHenry/ts-node-starter.git"
+  },
+  "author": "Alex henry",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alxHenry/ts-node-starter/issues"
+  },
+  "homepage": "https://github.com/alxHenry/ts-node-starter#readme"
+}
