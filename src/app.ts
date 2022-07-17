@@ -41,4 +41,4 @@ app.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
 });
 
-console.log(await parse("type,part\nunicorn,horn\nrainbow,pink"));
+console.log(await parse("sheets/atc/batters-7-16-22.csv"));

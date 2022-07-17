@@ -1,10 +1,12 @@
+import { readFile } from "fs/promises";
 import neatCsv from "neat-csv";
 
-export const parse = async (csv: string) => {
+export const parse = async (filePath: string) => {
   let result;
 
   try {
-    result = await neatCsv(csv);
+    const fileBuffer = await readFile(filePath);
+    result = await neatCsv(fileBuffer);
     if (result == null) {
       throw new Error("Unable to parse CSV");
     }
