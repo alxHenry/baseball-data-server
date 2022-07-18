@@ -1,8 +1,6 @@
-import { BatterRow, PitcherRow } from "../utils/parser.js";
-
 const excludedColumns = ["playerid", "-1", '"Name"', "Team"];
 
-export const calculateSumsAndAverages = (rows: BatterRow[] | PitcherRow[]) => {
+export function calculateSumsAndAverages<T>(rows: T[]) {
   if (rows.length === 0) {
     return { sums: {}, averages: {} };
   }
@@ -14,12 +12,8 @@ export const calculateSumsAndAverages = (rows: BatterRow[] | PitcherRow[]) => {
       }
 
       const row = rows[0];
-      if (isBatterRow(row)) {
-        // Multiply by 1 to get number value of string: https://stackoverflow.com/a/33544880
-        agg[column] = (row[column as keyof BatterRow] as any) * 1;
-      } else {
-        agg[column] = (row[column as keyof PitcherRow] as any) * 1;
-      }
+      // Multiply by 1 to get number value of string: https://stackoverflow.com/a/33544880
+      agg[column] = (row[column as keyof T] as any) * 1;
 
       return agg;
     },
@@ -33,11 +27,7 @@ export const calculateSumsAndAverages = (rows: BatterRow[] | PitcherRow[]) => {
         return;
       }
 
-      if (isBatterRow(row)) {
-        sums[col] += (row[col as keyof BatterRow] as any) * 1;
-      } else {
-        sums[col] += (row[col as keyof PitcherRow] as any) * 1;
-      }
+      sums[col] += (row[col as keyof T] as any) * 1;
     });
   }
 
@@ -52,8 +42,4 @@ export const calculateSumsAndAverages = (rows: BatterRow[] | PitcherRow[]) => {
   );
 
   return { sums, averages };
-};
-
-function isBatterRow(row: BatterRow | PitcherRow): row is BatterRow {
-  return (row as BatterRow).PA !== undefined;
 }
