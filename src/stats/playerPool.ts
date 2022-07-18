@@ -31,15 +31,16 @@ export function calculateSumsAndAverages<T>(rows: T[]) {
     });
   }
 
-  const averages = Object.keys(sums).reduce<Record<string, number>>(
-    (agg, col) => {
-      const value = sums[col];
-      agg[col] = value / rows.length;
-
-      return agg;
-    },
-    {}
-  );
+  const averages = calculateAverages(sums, rows.length);
 
   return { sums, averages };
 }
+
+const calculateAverages = (sums: Record<string, number>, numRows: number) => {
+  return Object.keys(sums).reduce<Record<string, number>>((agg, col) => {
+    const value = sums[col];
+    agg[col] = value / numRows;
+
+    return agg;
+  }, {});
+};
