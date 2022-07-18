@@ -1,6 +1,6 @@
 const excludedColumns = ["playerid", "-1", '"Name"', "Team"];
 
-export function calculateSumsAndAverages<T>(rows: T[]) {
+export const calculateSumsAndAverages = <T>(rows: T[]) => {
   if (rows.length === 0) {
     return { sums: {}, averages: {} };
   }
@@ -34,7 +34,7 @@ export function calculateSumsAndAverages<T>(rows: T[]) {
   const averages = calculateAverages(sums, rows.length);
 
   return { sums, averages };
-}
+};
 
 const calculateAverages = (sums: Record<string, number>, numRows: number) => {
   return Object.keys(sums).reduce<Record<string, number>>((agg, col) => {
