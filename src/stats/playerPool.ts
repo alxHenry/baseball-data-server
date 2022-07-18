@@ -13,6 +13,7 @@ export const calculateSumsAndAverages = <T>(rows: T[]) => {
 
       const row = rows[0];
       // Multiply by 1 to get number value of string: https://stackoverflow.com/a/33544880
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       agg[column] = (row[column as keyof T] as any) * 1;
 
       return agg;
@@ -27,6 +28,8 @@ export const calculateSumsAndAverages = <T>(rows: T[]) => {
         return;
       }
 
+      // Multiply by 1 to get number value of string: https://stackoverflow.com/a/33544880
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       sums[col] += (row[col as keyof T] as any) * 1;
     });
   }
