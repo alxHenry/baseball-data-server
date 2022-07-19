@@ -1,4 +1,4 @@
-const excludedColumns = ["playerid", "-1", '"Name"', "Team"];
+const excludedColumns = ["playerid", "Name", "Team"];
 const possibleCats = ["R", "RBI", "HR", "SB"];
 
 export const calculatePlayerZScores = <T>(rows: T[]): PlayerToZScoreMap => {
@@ -133,8 +133,7 @@ const calculateZScores = <T>(
       playerZScores[stat] = playerCatZScore;
     });
 
-    // Because the name has the pesky '"Name"' format that is weird to access. TODO: Fix this in parsing
-    const playerName = Object.values(row)[0];
+    const playerName = row["Name" as keyof T] as unknown as string;
     playersZScores[playerName] = playerZScores;
   }
 
