@@ -8,7 +8,7 @@ import { index } from "./routes/index.js";
 import * as dotenv from "dotenv";
 import { parseBattersAndPitchers } from "./utils/parser.js";
 import { fileURLToPath } from "url";
-import { calculateSumsAndAverages } from "./stats/playerPool.js";
+import { calculateSumsAndAveragesAndStdDev } from "./stats/playerPool.js";
 dotenv.config();
 
 const port = process.env.PORT || 3000;
@@ -46,5 +46,5 @@ const { batters } = await parseBattersAndPitchers(
   "sheets/atc/batters-7-16-22.csv",
   "sheets/atc/pitchers-7-16-22.csv"
 );
-const { averages } = calculateSumsAndAverages(batters);
-console.log(JSON.stringify(averages));
+
+console.log(JSON.stringify(calculateSumsAndAveragesAndStdDev(batters)));
