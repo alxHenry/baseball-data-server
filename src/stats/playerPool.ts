@@ -1,11 +1,7 @@
 const excludedColumns = ["playerid", "-1", '"Name"', "Team"];
+const possibleCats = ["R", "RBI", "HR", "SB"];
 
-// [sums, averages, stdDev]
-type StatsVector = [number, number, number];
-
-export const calculateSumsAndAveragesAndStdDev = <T>(
-  rows: T[]
-): Record<string, StatsVector> => {
+export const calculatePlayerZScores = <T>(rows: T[]): PlayerToZScoreMap => {
   if (rows.length === 0) {
     return {};
   }
@@ -44,8 +40,9 @@ export const calculateSumsAndAveragesAndStdDev = <T>(
     rows,
     sumsAndAverages
   );
+  const playerZScores = calculateZScores(rows, sumsAndAveragesAndStdDev);
 
-  return sumsAndAveragesAndStdDev;
+  return playerZScores;
 };
 
 const calculateAverages = (
@@ -104,4 +101,42 @@ const calculateStandardDeviation = <T>(
   });
 
   return sumsAndAveragesAndStdDev;
+};
+
+type ZScoreMap = Record<string, number>;
+type PlayerToZScoreMap = Record<string, ZScoreMap>;
+
+// How to calculate z-scores: https://www.getbigboard.com/harper-wallbanger/player-valuation-tip-1-playervalues2020#:~:text=The%20first%20step%20of%20creating%20player%20values%20in,lines%20from%20all%20qualified%20players%20to%20do%20this.
+const calculateZScores = <T>(
+  rows: T[],
+  sumsAndAveragesAndStdDev: Record<string, [number, number, number]>
+): PlayerToZScoreMap => {
+  const playersZScores: PlayerToZScoreMap = {};
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const playerZScores: ZScoreMap = {};
+
+    Object.keys(sumsAndAveragesAndStdDev).forEach((stat) => {
+      if (!possibleCats.includes(stat)) {
+        return;
+      }
+
+      const avg = sumsAndAveragesAndStdDev[stat][1];
+      const stdDev = sumsAndAveragesAndStdDev[stat][2];
+
+      const playerCatZScore =
+        // Multiply by 1 to get number value of string: https://stackoverflow.com/a/33544880
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ((row[stat as keyof T] as any) * 1 - avg) / stdDev;
+
+      playerZScores[stat] = playerCatZScore;
+    });
+
+    // Because the name has the pesky '"Name"' format that is weird to access. TODO: Fix this in parsing
+    const playerName = Object.values(row)[0];
+    playersZScores[playerName] = playerZScores;
+  }
+
+  return playersZScores;
 };
