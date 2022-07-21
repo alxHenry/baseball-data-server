@@ -1,5 +1,5 @@
 const excludedColumns = ["playerid", "Name", "Team"];
-const possibleCats = ["R", "RBI", "HR", "SB"];
+const possibleCats = ["R", "RBI", "HR", "SB", "AVG"];
 
 export const calculatePlayerZScores = <T>(rows: T[]): PlayerToZScoreMap => {
   if (rows.length === 0) {
@@ -132,6 +132,14 @@ const calculateZScores = <T>(
 
       playerZScores[stat] = playerCatZScore;
     });
+
+    const playerTotalZScore = Object.values(playerZScores).reduce<number>(
+      (total, catValue) => {
+        return (total += catValue);
+      },
+      0
+    );
+    playerZScores.total = playerTotalZScore;
 
     const playerName = row["Name" as keyof T] as unknown as string;
     playersZScores[playerName] = playerZScores;
