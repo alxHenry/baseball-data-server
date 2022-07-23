@@ -1,7 +1,19 @@
-const excludedColumns = ["playerid", "Name", "Team"];
-const possibleCats = ["R", "RBI", "HR", "SB", "AVG"];
+const leagueAverages: Record<string, number> = {
+  AVG: 0.242,
+  OBP: 0.312,
+  OPS: 0.707,
+  ERA: 3.99,
+  WHIP: 1.27,
+  "K/BB": 2.69,
+};
 
-export const calculatePlayerZScores = <T>(rows: T[]): PlayerToZScoreMap => {
+const excludedColumns = ["playerid", "Name", "Team"];
+const possibleAggregateCats = ["R", "RBI", "HR", "SB"];
+const possibleRateCat = ["OBP", "AVG", "OPS"];
+
+export const calculatePlayerZScores = <T extends Record<string, string>>(
+  rows: T[]
+): PlayerToZScoreMap => {
   if (rows.length === 0) {
     return {};
   }
@@ -107,7 +119,7 @@ type ZScoreMap = Record<string, number>;
 type PlayerToZScoreMap = Record<string, ZScoreMap>;
 
 // How to calculate z-scores: https://www.getbigboard.com/harper-wallbanger/player-valuation-tip-1-playervalues2020#:~:text=The%20first%20step%20of%20creating%20player%20values%20in,lines%20from%20all%20qualified%20players%20to%20do%20this.
-const calculateZScores = <T>(
+const calculateZScores = <T extends Record<string, string>>(
   rows: T[],
   sumsAndAveragesAndStdDev: Record<string, [number, number, number]>
 ): PlayerToZScoreMap => {
@@ -118,17 +130,22 @@ const calculateZScores = <T>(
     const playerZScores: ZScoreMap = {};
 
     Object.keys(sumsAndAveragesAndStdDev).forEach((stat) => {
-      if (!possibleCats.includes(stat)) {
+      const isPossibleAggregateCat = possibleAggregateCats.includes(stat);
+      const isPossibleRateCat = possibleRateCat.includes(stat);
+
+      let playerCatZScore;
+      if (!isPossibleAggregateCat && !isPossibleRateCat) {
         return;
+      } else if (isPossibleAggregateCat) {
+        playerCatZScore = calculateAggregateZScore(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (row[stat as keyof T] as any) * 1,
+          stat,
+          sumsAndAveragesAndStdDev
+        );
+      } else {
+        playerCatZScore = calculateRateZScore(stat, row);
       }
-
-      const avg = sumsAndAveragesAndStdDev[stat][1];
-      const stdDev = sumsAndAveragesAndStdDev[stat][2];
-
-      const playerCatZScore =
-        // Multiply by 1 to get number value of string: https://stackoverflow.com/a/33544880
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ((row[stat as keyof T] as any) * 1 - avg) / stdDev;
 
       playerZScores[stat] = playerCatZScore;
     });
@@ -146,4 +163,59 @@ const calculateZScores = <T>(
   }
 
   return playersZScores;
+};
+
+const calculateAggregateZScore = (
+  playerCatValue: number,
+  catKey: string,
+  sumsAndAveragesAndStdDev: Record<string, [number, number, number]>
+) => {
+  const avg = sumsAndAveragesAndStdDev[catKey][1];
+  const stdDev = sumsAndAveragesAndStdDev[catKey][2];
+
+  return (playerCatValue - avg) / stdDev;
+};
+
+const calculateRateZScore = <T extends Record<string, string>>(
+  cat: string,
+  row: T
+) => {
+  // These require more specific calculation for each type: numerator - (denominator * league_average)
+  // https://www.fantasybaseballcafe.com/forums/viewtopic.php?p=2950944&sid=06a9c270e521ddd8f29388f1f35b6de9#p2950944
+
+  // TODO: Really should cast to int in the parsing
+  const playerHits = parseInt(row["H"], 10);
+  const playerWalks = parseInt(row["BB"], 10);
+  const playerHitByPitch = parseInt(row["HBP"], 10);
+  const playerAtBats = parseInt(row["AB"], 10);
+  const playerTotalBases = calculatePlayerTotalBases(row);
+
+  const playerOBPNumerator = playerHits + playerWalks + playerHitByPitch;
+  const playerOBPDenominator = playerAtBats + playerWalks + playerHitByPitch;
+
+  if (cat === "AVG") {
+    return playerHits / (playerAtBats * leagueAverages["AVG"]);
+  } else if (cat === "OBP") {
+    // ATC projections are missing Sacrifice Flys
+    return playerOBPNumerator / (playerOBPDenominator * leagueAverages["OBP"]);
+  } else {
+    // OPS
+    return (
+      (playerAtBats * playerOBPNumerator +
+        playerTotalBases * playerOBPDenominator) /
+      (playerAtBats * playerOBPDenominator * leagueAverages["OPS"])
+    );
+  }
+};
+
+const calculatePlayerTotalBases = <T extends Record<string, string>>(
+  row: T
+) => {
+  const hits = parseInt(row["H"], 10);
+  const doubles = parseInt(row["2B"], 10);
+  const triples = parseInt(row["3B"], 10);
+  const homeRuns = parseInt(row["HR"], 10);
+  const singles = hits - (doubles + triples + homeRuns);
+
+  return singles + 2 * doubles + 3 * triples + 4 * homeRuns;
 };
