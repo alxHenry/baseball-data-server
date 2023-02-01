@@ -10,7 +10,7 @@ import * as dotenv from "dotenv";
 import { fileURLToPath } from "url";
 dotenv.config();
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 
 const originWhitelist = [`http://localhost:${port}`];
 const corsConfig: CorsOptions = {
