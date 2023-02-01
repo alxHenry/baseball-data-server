@@ -119,4 +119,10 @@ const fetchFangraphsAuctionCalculator = async (
 ) => {
   const batterUrl = `${BASE_AUCTION_URL}&type=bat`;
   const pitcherUrl = `${BASE_AUCTION_URL}&type=pit`;
+  const [batterData, pitcherData] = await Promise.all([
+    axios.get(batterUrl),
+    axios.get(pitcherUrl),
+  ]);
+
+  return [...batterData.data, ...pitcherData.data];
 };
