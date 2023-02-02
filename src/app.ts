@@ -5,6 +5,8 @@ import type { CorsOptions } from "cors";
 import { dirname, join } from "path";
 import { index } from "./routes/index.js";
 import { projections } from "./routes/projections.js";
+import { auction } from "./routes/auction.js";
+import { players } from "./routes/players.js";
 
 import * as dotenv from "dotenv";
 import { fileURLToPath } from "url";
@@ -37,6 +39,8 @@ const __dirname = dirname(__filename);
 app.use(express.static(join(__dirname, "../public")));
 app.use("/", index);
 app.use("/", projections);
+app.use("/", auction);
+app.use("/", players);
 
 app.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
