@@ -68,7 +68,6 @@ export const fetchFangraphsAuctionCalculator = async (
       pitcherUrl
     ),
   ]);
-  console.log(batterData.data.data);
 
   // Do filtering
   const batterDataFiltered = batterData.data.data.reduce<
