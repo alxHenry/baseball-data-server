@@ -42,7 +42,7 @@ export const fetchFangraphsPlayerData = async (
       // This is why we flatmap. We can essentially run a map and get an output of a different length like a reduce
       return [];
     }
-    const { playerid, ...restAuctionData } = matchingAuctionPlayer;
+    const { playerid, PlayerName, ...restAuctionData } = matchingAuctionPlayer;
 
     const transformedStats = Object.entries(
       restProjections as Record<string, number>

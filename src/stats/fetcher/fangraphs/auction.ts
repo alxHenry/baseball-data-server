@@ -11,6 +11,7 @@ const commonSelectedAuctionFields = {
   aPOS: true,
   Dollars: true,
   playerid: true,
+  PlayerName: true,
   PTS: true,
 };
 
@@ -51,6 +52,24 @@ const rawSelectedPitcherAuction: Record<string, boolean> = {
 
 export type PlayerData = Record<string, string | number>;
 
+const filterData = (
+  rawData: FangraphsAuctionResponse<Record<string, string | number>>,
+  selectedFields: Record<string, boolean>
+) => {
+  return rawData.data.reduce<Record<string, PlayerData>>((agg, rawPlayer) => {
+    const filteredStats = Object.keys(rawPlayer)
+      .filter((fieldKey) => selectedFields[fieldKey] != null)
+      .reduce<Record<string, string | number>>((agg, selectedKey) => {
+        agg[selectedKey] = rawPlayer[selectedKey];
+        return agg;
+      }, {});
+
+    const playerId = rawPlayer.playerid as string;
+    agg[playerId] = filteredStats;
+    return agg;
+  }, {});
+};
+
 const BASE_AUCTION_URL =
   "https://www.fangraphs.com/api/fantasy/auction-calculator/data?teams=9&lg=MLB&dollars=260&mb=1&mp=20&msp=5&mrp=5&players=&proj=atc&split=&points=c|0,1,2,3,4|0,1,2,3,4&rep=0&drp=0&pp=C,3B,2B,OF,SS,1B&pos=1,1,1,1,5,1,1,1,0,1,0,0,9,3,0&sort=&view=0";
 
@@ -70,34 +89,14 @@ export const fetchFangraphsAuctionCalculator = async (
   ]);
 
   // Do filtering
-  const batterDataFiltered = batterData.data.data.reduce<
-    Record<string, PlayerData>
-  >((agg, rawPlayer) => {
-    const filteredStats = Object.keys(rawPlayer)
-      .filter((fieldKey) => rawSelectedBatterAuction[fieldKey] != null)
-      .reduce<Record<string, string | number>>((agg, selectedKey) => {
-        agg[selectedKey] = rawPlayer[selectedKey];
-        return agg;
-      }, {});
-
-    const playerId = rawPlayer.playerid as string;
-    agg[playerId] = filteredStats;
-    return agg;
-  }, {});
-  const pitcherDataFiltered = pitcherData.data.data.reduce<
-    Record<string, PlayerData>
-  >((agg, rawPlayer) => {
-    const filteredStats = Object.keys(rawPlayer)
-      .filter((fieldKey) => rawSelectedPitcherAuction[fieldKey] != null)
-      .reduce<Record<string, string | number>>((agg, selectedKey) => {
-        agg[selectedKey] = rawPlayer[selectedKey];
-        return agg;
-      }, {});
-
-    const playerId = rawPlayer.playerid as string;
-    agg[playerId] = filteredStats;
-    return agg;
-  }, {});
+  const batterDataFiltered = filterData(
+    batterData.data,
+    rawSelectedBatterAuction
+  );
+  const pitcherDataFiltered = filterData(
+    pitcherData.data,
+    rawSelectedPitcherAuction
+  );
 
   return { ...batterDataFiltered, ...pitcherDataFiltered };
 };
