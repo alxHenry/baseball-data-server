@@ -14,7 +14,6 @@ const commonProjectionFields = {
   PlayerName: true,
   ADP: true,
   Team: true,
-  minpos: true,
 };
 
 const selectedProjectionBatterFields: Record<string, boolean> = {

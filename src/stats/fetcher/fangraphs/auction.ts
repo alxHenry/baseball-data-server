@@ -12,6 +12,7 @@ const commonSelectedAuctionFields = {
   Dollars: true,
   playerid: true,
   PlayerName: true,
+  POS: true,
   PTS: true,
 };
 
