@@ -38,7 +38,12 @@ export const fetchFangraphsPlayerData = async (
 
     const matchingAuctionPlayer = playerIdToData[id];
     if (matchingAuctionPlayer == null) {
-      console.warn("Auction data not found for projection player with id", id);
+      console.warn(
+        "Auction data not found for projection player",
+        name,
+        "ID:",
+        id
+      );
       // This is why we flatmap. We can essentially run a map and get an output of a different length like a reduce
       return [];
     }
