@@ -37,7 +37,6 @@ const selectedProjectionBatterFields: Record<string, boolean> = {
   SB: true,
   SF: true,
   SLG: true,
-  SO: true,
   wOBA: true,
 };
 
@@ -48,15 +47,10 @@ const selectedProjectionPitcherFields: Record<string, boolean> = {
   BB: true,
   ER: true,
   ERA: true,
-  GS: true,
   H: true,
-  HBP: true,
   HLD: true,
-  HR: true,
   IP: true,
-  L: true,
   QS: true,
-  R: true,
   SO: true,
   SV: true,
   W: true,
