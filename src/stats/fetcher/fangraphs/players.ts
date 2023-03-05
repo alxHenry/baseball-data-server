@@ -11,7 +11,7 @@ interface Stat {
 interface ServerPlayer {
   readonly id: string;
   readonly name: string;
-  readonly position: string;
+  readonly position: string[];
   readonly team: string;
   readonly stats: Record<string, Stat>;
 }
@@ -42,7 +42,6 @@ export const fetchFangraphsPlayerData = async (
           "ID:",
           id
         );
-        // This is why we flatmap. We can essentially run a map and get an output of a different length like a reduce
         return agg;
       }
 
@@ -76,7 +75,7 @@ export const fetchFangraphsPlayerData = async (
       agg[id as string] = {
         id: id as string,
         name: name as string,
-        position: (restAuctionData["POS"] as string).split("/")[0], // For some reason the pitcher projection API doesn't include position
+        position: (restAuctionData["POS"] as string).split("/"), // For some reason the pitcher projection API doesn't include position
         team: team as string,
         stats: transformedStats,
       };
