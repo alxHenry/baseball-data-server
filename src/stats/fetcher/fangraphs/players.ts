@@ -1,8 +1,6 @@
 import { fetchFangraphsAuctionCalculator } from "./auction.js";
-import {
-  fetchFangraphsProjections,
-  ProjectionsProvider,
-} from "./projections.js";
+import { fetchFangraphsProjections } from "./projections.js";
+import { ProjectionsProvider } from "./url.js";
 
 interface Stat {
   readonly id: string;
@@ -19,7 +17,7 @@ interface ServerPlayer {
 }
 
 export const fetchFangraphsPlayerData = async (
-  provider: ProjectionsProvider = "ATC"
+  provider: ProjectionsProvider = ProjectionsProvider.ATC
 ): Promise<Record<string, ServerPlayer>> => {
   const [projectionsData, playerIdToData] = await Promise.all([
     fetchFangraphsProjections(provider),

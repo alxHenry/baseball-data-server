@@ -1,13 +1,6 @@
 import axios from "axios";
+import { getProjectionsUrl, ProjectionsProvider } from "./url.js";
 import { filterData } from "./utils.js";
-
-export type ProjectionsProvider = "ATC" | "THE BAT" | "THE BATX" | "Steamer";
-const providerToKey: Record<ProjectionsProvider, string> = {
-  ATC: "atc",
-  "THE BAT": "thebat",
-  "THE BATX": "thebatx",
-  Steamer: "steamer",
-};
 
 const commonProjectionFields = {
   playerids: true,
@@ -57,17 +50,16 @@ const selectedProjectionPitcherFields: Record<string, boolean> = {
   WHIP: true,
 };
 
-const BASE_PROJECTIONS_URL = "https://www.fangraphs.com/api/projections"; // &stats=bat&pos=all&team=0&players=0&lg=all'
-const COMMON_PROJECTIONS_QUERY = "pos=all&team=0&players=0&lg=all";
-
 export const fetchFangraphsProjections = async (
-  provider: ProjectionsProvider = "ATC"
+  provider: ProjectionsProvider = ProjectionsProvider.ATC
 ) => {
-  const batterUrl = `${BASE_PROJECTIONS_URL}?type=${providerToKey[provider]}&stats=bat&${COMMON_PROJECTIONS_QUERY}`;
-  const pitcherUrl = `${BASE_PROJECTIONS_URL}?type=${providerToKey[provider]}&stats=pit&${COMMON_PROJECTIONS_QUERY}`;
   const [batterData, pitcherData] = await Promise.all([
-    axios.get<Record<string, string | number>[]>(batterUrl),
-    axios.get<Record<string, string | number>[]>(pitcherUrl),
+    axios.get<Record<string, string | number>[]>(
+      getProjectionsUrl({ isBatter: true, provider })
+    ),
+    axios.get<Record<string, string | number>[]>(
+      getProjectionsUrl({ isBatter: false, provider })
+    ),
   ]);
 
   // Filter the data so we don't waste sending unused stats over the wire

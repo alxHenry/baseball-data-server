@@ -1,5 +1,5 @@
 import axios from "axios";
-import { ProjectionsProvider } from "./projections.js";
+import { getAuctionUrl, ProjectionsProvider } from "./url.js";
 
 interface FangraphsAuctionResponse<T> {
   readonly data: T[];
@@ -71,21 +71,16 @@ const filterData = (
   }, {});
 };
 
-const BASE_AUCTION_URL =
-  "https://www.fangraphs.com/api/fantasy/auction-calculator/data?teams=9&lg=MLB&dollars=260&mb=1&mp=20&msp=5&mrp=5&players=&proj=atc&split=&points=c|0,1,2,3,4|0,1,2,3,4&rep=0&drp=0&pp=C,3B,2B,OF,SS,1B&pos=1,1,1,1,5,1,1,1,0,1,0,0,9,3,0&sort=&view=0";
-
 // Defaulted to my league settings for now since it will be the first test run
 export const fetchFangraphsAuctionCalculator = async (
-  provider: ProjectionsProvider = "ATC"
+  provider: ProjectionsProvider = ProjectionsProvider.ATC
 ) => {
-  const batterUrl = `${BASE_AUCTION_URL}&type=bat`;
-  const pitcherUrl = `${BASE_AUCTION_URL}&type=pit`;
   const [batterData, pitcherData] = await Promise.all([
     axios.get<FangraphsAuctionResponse<Record<string, string | number>>>(
-      batterUrl
+      getAuctionUrl({ isBatter: true, provider })
     ),
     axios.get<FangraphsAuctionResponse<Record<string, string | number>>>(
-      pitcherUrl
+      getAuctionUrl({ isBatter: false, provider })
     ),
   ]);
 
