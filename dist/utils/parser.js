@@ -9,6 +9,20 @@ export const parseBattersAndPitchers = async (batterFilePath, pitcherFilePath) =
         await neatCsv(batterBuffer),
         await neatCsv(pitcherBuffer),
     ]);
-    return { batters: batterRows, pitchers: pitcherRows };
+    const cleanedBatters = cleanRows(batterRows);
+    const cleanedPitchers = cleanRows(pitcherRows);
+    return { batters: cleanedBatters, pitchers: cleanedPitchers };
+};
+const cleanRows = (rows) => {
+    const results = [];
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const [nameKey, name] = Object.entries(row)[0];
+        delete row[nameKey];
+        delete row["-1"];
+        const cleanedRow = Object.assign({ Name: name }, row);
+        results.push(cleanedRow);
+    }
+    return results;
 };
 //# sourceMappingURL=parser.js.map
