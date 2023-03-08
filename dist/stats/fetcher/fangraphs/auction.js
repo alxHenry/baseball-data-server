@@ -1,4 +1,5 @@
 import axios from "axios";
+import { mergeAuctionData } from "../../transformation/auction.js";
 import { getAuctionUrl, ProjectionsProvider } from "./url.js";
 const commonSelectedAuctionFields = {
     ADP: true,
@@ -56,6 +57,7 @@ export const fetchFangraphsAuctionCalculator = async (provider = ProjectionsProv
     ]);
     const batterDataFiltered = filterData(batterData.data, rawSelectedBatterAuction);
     const pitcherDataFiltered = filterData(pitcherData.data, rawSelectedPitcherAuction);
-    return Object.assign(Object.assign({}, batterDataFiltered), pitcherDataFiltered);
+    const merged = mergeAuctionData(batterDataFiltered, pitcherDataFiltered);
+    return merged;
 };
 //# sourceMappingURL=auction.js.map

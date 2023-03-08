@@ -12,14 +12,15 @@ var __rest = (this && this.__rest) || function (s, e) {
 import { fetchFangraphsAuctionCalculator } from "./auction.js";
 import { fetchFangraphsProjections } from "./projections.js";
 import { ProjectionsProvider } from "./url.js";
+import { PlayerType } from "./utils.js";
 export const fetchFangraphsPlayerData = async (provider = ProjectionsProvider.ATC) => {
-    const [projectionsData, playerIdToData] = await Promise.all([
+    const [projectionPlayerLookups, auctionPlayerLookups] = await Promise.all([
         fetchFangraphsProjections(provider),
         fetchFangraphsAuctionCalculator(provider),
     ]);
-    const joinedData = projectionsData.reduce((agg, player) => {
-        const { playerids: id, PlayerName: name, Team: team } = player, restProjections = __rest(player, ["playerids", "PlayerName", "Team"]);
-        const matchingAuctionPlayer = playerIdToData[id];
+    const joinedData = Object.values(projectionPlayerLookups).reduce((agg, player) => {
+        const { playerids: id, PlayerName: name, Team: team, minpos: minPositions, playerType } = player, restProjections = __rest(player, ["playerids", "PlayerName", "Team", "minpos", "playerType"]);
+        const matchingAuctionPlayer = auctionPlayerLookups[id];
         if (matchingAuctionPlayer == null) {
             console.warn("Auction data not found for projection player", name, "ID:", id);
             return agg;
@@ -43,12 +44,27 @@ export const fetchFangraphsPlayerData = async (provider = ProjectionsProvider.AT
             id: "aWorth",
             abs: restAuctionData["Dollars"],
         };
+        let positions = [];
+        switch (playerType) {
+            case PlayerType.BATTER:
+                positions = minPositions.split("/");
+                break;
+            case PlayerType.PITCHER:
+                positions = restAuctionData["POS"].split("/");
+                break;
+            case PlayerType.BOTH:
+                positions = [
+                    ...minPositions.split("/"),
+                    ...restAuctionData["POS"].split("/"),
+                ];
+                break;
+        }
         agg[id] = {
             id: id,
             name: name,
-            position: restAuctionData["POS"].split("/"),
             team: team,
             stats: transformedStats,
+            position: positions,
         };
         return agg;
     }, {});
