@@ -1,4 +1,9 @@
 import axios from "axios";
+import {
+  mergeProjectionData,
+  playerArrToObject,
+  transformPitcherProjectedStatNames,
+} from "../../transformation/projections.js";
 import { getProjectionsUrl, ProjectionsProvider } from "./url.js";
 import { filterData } from "./utils.js";
 
@@ -7,6 +12,7 @@ const commonProjectionFields = {
   PlayerName: true,
   ADP: true,
   Team: true,
+  minpos: true,
 };
 
 const selectedProjectionBatterFields: Record<string, boolean> = {
@@ -71,6 +77,13 @@ export const fetchFangraphsProjections = async (
     pitcherData.data,
     selectedProjectionPitcherFields
   );
+  const pitcherDataTransformed =
+    transformPitcherProjectedStatNames(pitcherDataFiltered);
 
-  return [...batterDataFiltered, ...pitcherDataFiltered];
+  const batterObj = playerArrToObject(batterDataFiltered);
+  const pitcherObj = playerArrToObject(pitcherDataTransformed);
+
+  // Merge these together and handle players like Ohtani that need data in both
+  const merged = mergeProjectionData(batterObj, pitcherObj);
+  return merged;
 };

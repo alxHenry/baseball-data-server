@@ -1,3 +1,12 @@
+export enum PlayerType {
+  BATTER = "BATTER",
+  PITCHER = "PITCHER",
+  BOTH = "BOTH",
+}
+
+export type PlayerData = Record<string, string | number>;
+export type PlayersLookup = Record<string, PlayerData>;
+
 export const filterData = (
   rawData: Record<string, string | number>[],
   selectedFields: Record<string, boolean>

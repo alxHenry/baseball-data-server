@@ -30,7 +30,7 @@
     "typescript": "^4.7.4"
   },
   "scripts": {
-    "dev": "ts-node --esm src/app.ts",
+    "dev": "node --loader ts-node/esm --inspect src/app.ts",
     "start": "node dist/app.js",
     "build": "tsc",
     "deploy": "npm run build && git add dist && git commit -m 'DEPLOYING-AUTO-COMMIT' && caprover deploy --default"

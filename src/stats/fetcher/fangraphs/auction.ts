@@ -1,5 +1,7 @@
 import axios from "axios";
+import { mergeAuctionData } from "../../transformation/auction.js";
 import { getAuctionUrl, ProjectionsProvider } from "./url.js";
+import { PlayerData } from "./utils.js";
 
 interface FangraphsAuctionResponse<T> {
   readonly data: T[];
@@ -51,8 +53,6 @@ const rawSelectedPitcherAuction: Record<string, boolean> = {
   ...commonSelectedAuctionFields,
 };
 
-export type PlayerData = Record<string, string | number>;
-
 const filterData = (
   rawData: FangraphsAuctionResponse<Record<string, string | number>>,
   selectedFields: Record<string, boolean>
@@ -94,5 +94,7 @@ export const fetchFangraphsAuctionCalculator = async (
     rawSelectedPitcherAuction
   );
 
-  return { ...batterDataFiltered, ...pitcherDataFiltered };
+  // Merge these together and handle players like Ohtani that need data in both
+  const merged = mergeAuctionData(batterDataFiltered, pitcherDataFiltered);
+  return merged;
 };

@@ -1,6 +1,7 @@
 import { fetchFangraphsAuctionCalculator } from "./auction.js";
 import { fetchFangraphsProjections } from "./projections.js";
 import { ProjectionsProvider } from "./url.js";
+import { PlayerType } from "./utils.js";
 
 interface Stat {
   readonly id: string;
@@ -19,70 +20,86 @@ interface ServerPlayer {
 export const fetchFangraphsPlayerData = async (
   provider: ProjectionsProvider = ProjectionsProvider.ATC
 ): Promise<Record<string, ServerPlayer>> => {
-  const [projectionsData, playerIdToData] = await Promise.all([
+  const [projectionPlayerLookups, auctionPlayerLookups] = await Promise.all([
     fetchFangraphsProjections(provider),
     fetchFangraphsAuctionCalculator(provider),
   ]);
 
   // Join the projections data and auction data by playerid
-  const joinedData = projectionsData.reduce<Record<string, ServerPlayer>>(
-    (agg, player) => {
-      const {
-        playerids: id,
-        PlayerName: name,
-        Team: team,
-        ...restProjections
-      } = player;
+  const joinedData = Object.values(projectionPlayerLookups).reduce<
+    Record<string, ServerPlayer>
+  >((agg, player) => {
+    const {
+      playerids: id,
+      PlayerName: name,
+      Team: team,
+      minpos: minPositions,
+      playerType,
+      ...restProjections
+    } = player;
 
-      const matchingAuctionPlayer = playerIdToData[id];
-      if (matchingAuctionPlayer == null) {
-        console.warn(
-          "Auction data not found for projection player",
-          name,
-          "ID:",
-          id
-        );
-        return agg;
-      }
+    const matchingAuctionPlayer = auctionPlayerLookups[id];
+    if (matchingAuctionPlayer == null) {
+      console.warn(
+        "Auction data not found for projection player",
+        name,
+        "ID:",
+        id
+      );
+      return agg;
+    }
 
-      const { playerid, PlayerName, ...restAuctionData } =
-        matchingAuctionPlayer;
+    const { playerid, PlayerName, ...restAuctionData } = matchingAuctionPlayer;
 
-      const transformedStats = Object.entries(
-        restProjections as Record<string, number>
-      ).reduce<Record<string, Stat>>((agg, [key, projValue]) => {
-        const auctionKey = `m${key}`;
-        const auctionValue = restAuctionData[auctionKey] as number | undefined;
+    const transformedStats = Object.entries(
+      restProjections as Record<string, number>
+    ).reduce<Record<string, Stat>>((agg, [key, projValue]) => {
+      const auctionKey = `m${key}`;
+      const auctionValue = restAuctionData[auctionKey] as number | undefined;
 
-        agg[key] = {
-          id: key,
-          abs: projValue,
-          rel: auctionValue,
-        };
-        return agg;
-      }, {});
-
-      // Add auction only stats
-      transformedStats["worth"] = {
-        id: "worth",
-        abs: restAuctionData["PTS"] as number,
-      };
-      transformedStats["aWorth"] = {
-        id: "aWorth",
-        abs: restAuctionData["Dollars"] as number,
-      };
-
-      agg[id as string] = {
-        id: id as string,
-        name: name as string,
-        position: (restAuctionData["POS"] as string).split("/"), // For some reason the pitcher projection API doesn't include position
-        team: team as string,
-        stats: transformedStats,
+      agg[key] = {
+        id: key,
+        abs: projValue,
+        rel: auctionValue,
       };
       return agg;
-    },
-    {}
-  );
+    }, {});
+
+    // Add auction only stats
+    transformedStats["worth"] = {
+      id: "worth",
+      abs: restAuctionData["PTS"] as number,
+    };
+    transformedStats["aWorth"] = {
+      id: "aWorth",
+      abs: restAuctionData["Dollars"] as number,
+    };
+
+    let positions: string[] = [];
+    switch (playerType) {
+      case PlayerType.BATTER:
+        positions = (minPositions as string).split("/");
+        break;
+      case PlayerType.PITCHER:
+        positions = (restAuctionData["POS"] as string).split("/");
+        break;
+      case PlayerType.BOTH:
+        positions = [
+          ...(minPositions as string).split("/"),
+          ...(restAuctionData["POS"] as string).split("/"),
+        ];
+        break;
+    }
+
+    agg[id as string] = {
+      id: id as string,
+      name: name as string,
+      team: team as string,
+      stats: transformedStats,
+      position: positions,
+    };
+    return agg;
+  }, {});
 
   return joinedData;
 };
